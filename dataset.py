@@ -200,39 +200,39 @@ class ScanDataset(Dataset): # inherited from torch class Dataset; normalize and 
         self.set_trans_prob(1.0) # prob to go through transformation (augmentation)?
         self.iter_per_sample = 1
 
-        def __len__(self): # should override to provide size of dataset
-            return len(self.data_list) * self.iter_per_sample
+    def __len__(self): # should override to provide size of dataset
+        return len(self.data_list) * self.iter_per_sample
 
-        def __getitem__(self, index): # should override; support int indexing from 0 to len(self) exclusive
-            index = int(index / self.iter_per_sample) # find floor, if 2, idx becomes 0, 0, 1, 1...
-            volume = self.data_list[index] # one person data volume
-            label = self.label_list[index]
-            if self.is_train: # is_train evaluated here only
-                assert(label is not None)
-                for trans in self.trans_all: # trans_all defined in set_trans_prob
-                    volume, label = trans(volume, label)
-                for trans in self.trans_data:
-                    volume = trans(volume)
-            volume = torch.Tensor(volume.copy()).permute(3, 2, 0, 1) # HWDC to CDHW order??
-            if label is not None:
-                label = torch.Tensor(label.copy()).permute(2, 0, 1) # HWD to DHW
-            return volume, label
+    def __getitem__(self, index): # should override; support int indexing from 0 to len(self) exclusive
+        index = int(index / self.iter_per_sample) # find floor, if 2, idx becomes 0, 0, 1, 1...
+        volume = self.data_list[index] # one person data volume
+        label = self.label_list[index]
+        if self.is_train: # is_train evaluated here only
+            assert(label is not None)
+            for trans in self.trans_all: # trans_all defined in set_trans_prob
+                volume, label = trans(volume, label)
+            for trans in self.trans_data:
+                volume = trans(volume)
+        volume = torch.Tensor(volume.copy()).permute(3, 2, 0, 1) # HWDC to CDHW order??
+        if label is not None:
+            label = torch.Tensor(label.copy()).permute(2, 0, 1) # HWD to DHW
+        return volume, label
 
-        def set_trans_prob(self, prob):
-            self.trans_prob = prob
-            self.trans_all = [CurriculumWrapper(ReColor(alpha=0.05), prob)] # all means data and label
-            self.trans_data = [SampleVolume(dst_shape=self.sample_shape, pos_ratio=0.5),
-                               CurriculumWrapper(RandomRotate(random_flip=True),
-                               prob)]
+    def set_trans_prob(self, prob):
+        self.trans_prob = prob
+        self.trans_all = [CurriculumWrapper(ReColor(alpha=0.05), prob)] # all means data and label
+        self.trans_data = [SampleVolume(dst_shape=self.sample_shape, pos_ratio=0.5),
+                           CurriculumWrapper(RandomRotate(random_flip=True),
+                           prob)]
 
-        def set_iter_per_sample(self, iter_per_sample):
-            self.iter_per_sample = iter_per_sample
+    def set_iter_per_sample(self, iter_per_sample):
+        self.iter_per_sample = iter_per_sample
 
-        def train(self):
-            self.is_train = True # call to set is_train to True
+    def train(self):
+        self.is_train = True # call to set is_train to True
 
-        def eval(self):
-            self.is_train = False
+    def eval(self):
+        self.is_train = False
 
 class BRATSDataset(ScanDataset): # this class is to load specific dataset and store stats
     def __init__(self, folder_paths, sample_shape=(96, 96, 5), means=None, norms=None, is_train=False):
@@ -242,13 +242,13 @@ class BRATSDataset(ScanDataset): # this class is to load specific dataset and st
         # norms = np.array([[[[ 89.12859344,  124.9729538 ,  137.86834717,  154.61538696]]]], dtype=np.float32)
         means = np.array([[[[0.16181767, 0.15569262, 0.15443861, 0.20622088]]]], dtype=np.float32)
         norms = np.array([[[[0.27216652, 0.26292121, 0.25937194, 0.34633893]]]], dtype=np.float32)
-        super(BRATSDataset, self).__init__(folders, sample_shape, means, norms, is_train)
+        super(BRATSDataset, self).__init__(folder_paths, sample_shape, means, norms, is_train)
 
     def load_data(self, folder_paths): # folders: e.g. 0001; folder: e.g. VSD...
         data_list = []
         label_list = []
         for folder_path in folder_paths:
-            print('Loading %s' % folder)
+            print('Loading %s' % folder_path)
             person_data = LoadOnePersonMha(folder_path)
             person_data, label = StackData(person_data)
             data_list.append(person_data)

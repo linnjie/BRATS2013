@@ -2,15 +2,16 @@ import sys
 import os
 
 from solver import Solver, SegLoss
-
+from refine_net import RefineNet
+from dataset import BRATSDataset
 
 
 
 
 def GetDataset(fold, num_fold, need_train=True, need_val=True):
-    data_root = './BRATS-2/Image-Data/HG/'
+    data_root = './BRATS-2/Image_Data/HG/'
     HG_folder_paths = [os.path.join(data_root, folder) for folder in sorted(os.listdir(data_root))]
-    data_root = './BRATS-2/Image-Data/LG/'
+    data_root = './BRATS-2/Image_Data/LG/'
     LG_folder_paths = [os.path.join(data_root, folder) for folder in sorted(os.listdir(data_root))]
 
     train_folder_paths = [] # till 0001
@@ -21,12 +22,12 @@ def GetDataset(fold, num_fold, need_train=True, need_val=True):
         else:
             train_folder_paths.append(path)
 
-    if need_train and len(train_folders) > 0:
+    if need_train and len(train_folder_paths) > 0:
         train_set = BRATSDataset(train_folder_paths,sample_shape=(128, 128, 12), is_train=True) # train_folders: e.g. 0001
     else:
         train_set = None
 
-    if need_val and len(val_folders) > 0:
+    if need_val and len(val_folder_paths) > 0:
         val_set = BRATSDataset(val_folder_paths, is_train=False)
     else:
         val_sel = None
