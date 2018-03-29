@@ -94,6 +94,7 @@ def Visualize(person_data):
         print('Image type: ', img_type, 'Image dim: ', img_data.shape)
         # sample img dim (216, 160, 176) for all img type in train 0001 and 0002
         if img_type == 'OT':
+            print('Max label: %d' % np.max(img_data))
             data = img_data # do not normalize ground truth
         else:
             data = img_data.astype(np.float32)
@@ -242,6 +243,7 @@ class BRATSDataset(ScanDataset): # this class is to load specific dataset and st
         # norms = np.array([[[[ 89.12859344,  124.9729538 ,  137.86834717,  154.61538696]]]], dtype=np.float32)
         # means = np.array([[[[0.16181767, 0.15569262, 0.15443861, 0.20622088]]]], dtype=np.float32)
         # norms = np.array([[[[0.27216652, 0.26292121, 0.25937194, 0.34633893]]]], dtype=np.float32)
+
         super(BRATSDataset, self).__init__(folder_paths, sample_shape, means, norms, is_train)
 
     def load_data(self, folder_paths): # folders: e.g. 0001; folder: e.g. VSD...
