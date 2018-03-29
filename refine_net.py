@@ -55,7 +55,7 @@ class RefineNet(VoxResNet):
         h2 = self.foward_stage2(h1)
         h3 = self.foward_stage3(h2)
         h4 = self.foward_stage4(h3)
-        #h4 = self.non_local(h4)
+        h4 = self.non_local(h4)
 
         h1 = self.adaptive1(F.relu(h1, inplace=False))
         h2 = self.adaptive2(F.relu(h2, inplace=False))

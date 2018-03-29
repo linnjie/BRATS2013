@@ -81,7 +81,7 @@ def Evaluate(net, dataset, data_name):
         print('Processsing %d/%d examples' % (i+1, len(dataset)))
         volume = Variable(volume).cuda()
         label = label.cuda()
-        pred = SplitAndForward(net, volume, 31)  # because most frames are blank?
+        pred = SplitAndForward(net, volume, 44)  # because most frames are blank?
         pred = torch.max(pred, dim=1)[1]  # most probable class, (1, D, H, W)
         # max returns (max value, argmax), data type: (Tensor, LongTensor)
         end = time.time()
