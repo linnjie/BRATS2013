@@ -266,7 +266,7 @@ class BRATSDataset(ScanDataset): # this class is to load specific dataset and st
 '''
 run under BRATS2013
 visualize
-train root: ./BRATS-2/Image-Data/HG/0001
+train root: ./BRATS-2/Image_Data/HG/0001
 test root: ./BRATS_Leaderboard/LeaderBoard/HG/0116
 '''
 

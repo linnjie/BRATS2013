@@ -1,11 +1,15 @@
 import sys
 import os
+import time
+
+import torch
+from torch.autograd import Variable
 
 from solver import Solver, SegLoss
 from refine_net import RefineNet
 from dataset import BRATSDataset
 
-
+from evaluator import EvalDiceScore, EvalSensitivity, EvalPrecision
 
 
 def GetDataset(fold, num_fold, need_train=True, need_val=True):
@@ -54,6 +58,55 @@ def Train(train_set, val_set, net, num_epoch, lr, output_dir):
             eval_dict_val = Evaluate(net, val_set, 'val')
             for key, value in eval_dict_val.items():
                 solver.writer.add_scalar(key, value, i_epoch)
+
+def SplitAndForward(net, x, split_size=31): # x is single volume
+    pred = []
+    for i, sub_x in enumerate(torch.split(x, split_size, dim=1)):  # CDHW; split tensor into chunks
+        result = net(sub_x.unsqueeze(0))  # NCDHW: (1, num_classes, num_chunks, H, W )
+        pred.append(result.data)   # concat D back
+    pred = torch.cat(pred, dim=2)  # NCDHW
+    return pred
+
+
+
+def Evaluate(net, dataset, data_name):
+    net.eval()
+    dataset.eval()
+    evaluators = [EvalDiceScore(), EvalSensitivity(), EvalPrecision()]
+
+    total_time = 0
+    for i in range(len(dataset)):
+        start = time.time()
+        volume, label = dataset[i]  # simgle volume, label
+        print('Processsing %d/%d examples' % (i, len(dataset)))
+        volume = Variable(volume).cuda()
+        label = label.cuda()
+        pred = SplitAndForward(net, volume, 31)  # because most frames are blank?
+        pred = torch.max(pred, dim=1)[1]  # most probable class, (1, D, H, W)
+        # max returns (max value, argmax), data type: (Tensor, LongTensor)
+        end = time.time()
+        print('Time: %f' % (end - start))
+        total_time += end - start
+        pred = pred.long()
+
+        # 1 necrosis, 2 edema, 3 non-enhancing tumor, 4 enhancing tumor, 0 everything else
+        for j in range(5):
+            for evaluator in evaluators:
+                evaluator.AddResult(pred == i, label == i)
+    print('Average time: %f' % total_time/(len(dataset)-1))
+
+    eval_dict = {}
+    for i in range(5):
+        for evaluator in evaluators:
+            eval_value = evaluator.Eval()
+            eval_dict['/'.join([data_name, type(evaluator).__name__, i])] = eval_value
+            print('Label %d: %s, %f' % (i, type(evaluator.__name__, eval_value)))
+    return eval_dict
+
+
+
+
+
 
 
 if __name__ == '__main__':
