@@ -20,8 +20,12 @@ class CollateFn:  # why customize? referred directly in step_one_epoch?
             label_list.append(label)
             return torch.stack(volume_list), torch.stack(label_list)
 
-
-
+def SegLoss(pred, target, num_classes=5, loss_fn=nn.CrossEntropyLoss()):
+    pred = pred.permute(0, 2, 3, 4, 1).contiguous()  # call contiguous() before view(), but why?
+    pred = pred.view(-1, num_classes)
+    target = target.view(-1)  # what kind of label?
+    loss = loss_fn(pred, target.long())
+    return loss
 
 class Solver(object):
     def __init__(self, net, dataset, lr, output_dir):
@@ -53,8 +57,8 @@ class Solver(object):
                 target = Variable(target).cuda()
 
                 # forward
-                predict = self.net(volume)
-                loss = self.criterion(predict, target)
+                pred = self.net(volume)
+                loss = self.criterion(pred, target)
                 self.writer.add_scalar('loss', loss.data[0], self.num_iter)
 
                 # backward

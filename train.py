@@ -35,7 +35,7 @@ def GetDataset(fold, num_fold, need_train=True, need_val=True):
 
 def Train(train_set, val_set, net, num_epoch, lr, output_dir):
     solver = Solver(net, train_set, 0.0001, output_dir)
-    solver.criterion = lambda p, t: SegLoss(p, t, num_classes=5) # pred, target
+    solver.criterion = lambda p, t: SegLoss(p, t, num_classes=5) # pred, target, num_classes set here
     solver.iter_per_sample = 100  # goes to self.dataset.set_iter_per_sample() in Solver
     for i_epoch in range(0, num_epoch, solver.iter_per_sample):  # say, (0, 2000, 100), so i_epoch = 0, 100, 200...
         # train
@@ -62,7 +62,7 @@ if __name__ == '__main__':
     if val_set is not None:
         print('Size of val set: %d' % len(val_set))
 
-    net = RefineNet(4, 5)
+    net = RefineNet(in_channels=4, num_classes=5)
 
     output_dir = './output/brast_%d' % fold
     try:
