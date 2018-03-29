@@ -38,35 +38,15 @@ def GetDataset(fold, num_fold, need_train=True, need_val=True):
 
     return train_set, val_set
 
-def Train(train_set, val_set, net, num_epoch, lr, output_dir):
-    solver = Solver(net, train_set, 0.0001, output_dir)
-    solver.criterion = lambda p, t: SegLoss(p, t, num_classes=5) # pred, target, num_classes set here
-    solver.iter_per_sample = 100  # goes to self.dataset.set_iter_per_sample() in Solver
-    for i_epoch in range(0, num_epoch, solver.iter_per_sample):  # say, (0, 2000, 100), so i_epoch = 0, 100, 200...
-        # train
-        solver.dataset.set_trans_prob(i_epoch / 1000.0 + 0.15)
-        loss = solver.step_one_epoch(batch_size=10, iter_size=1)
-        i_epoch = solver.num_epoch  # num_epoch is accumulated in step_one_epoch by iter_per_sample
-        print('Epoch: %d, Loss: %f' % (i_epoch, loss))
-
-        if i_epoch % 100 == 0:
-            save_path = solver.save_model()
-            print('Save model at %s' % save_path)
-
-        # val
-        if i_epoch % 100 == 0:
-            eval_dict_val = Evaluate(net, val_set, 'val')
-            for key, value in eval_dict_val.items():
-                solver.writer.add_scalar(key, value, i_epoch)
 
 def SplitAndForward(net, x, split_size=31): # x is single volume
     pred = []
     for i, sub_x in enumerate(torch.split(x, split_size, dim=1)):  # CDHW; split tensor into chunks
-        result = net(sub_x.unsqueeze(0))  # NCDHW: (1, num_classes, num_chunks, H, W )
-        pred.append(result.data)   # concat D back
+        if sub_x.shape[1] == 8:
+            result = net(sub_x.unsqueeze(0))  # NCDHW: (1, num_classes, num_chunks, H, W )
+            pred.append(result.data)   # concat D back
     pred = torch.cat(pred, dim=2)  # NCDHW
     return pred
-
 
 
 def Evaluate(net, dataset, data_name):
@@ -81,7 +61,7 @@ def Evaluate(net, dataset, data_name):
         print('Processsing %d/%d examples' % (i+1, len(dataset)))
         volume = Variable(volume).cuda()
         label = label.cuda()
-        pred = SplitAndForward(net, volume, 44)  # because most frames are blank?
+        pred = SplitAndForward(net, volume, 22)  # limit memory usage
         pred = torch.max(pred, dim=1)[1]  # most probable class, (1, D, H, W)
         # max returns (max value, argmax), data type: (Tensor, LongTensor)
         end = time.time()
@@ -103,7 +83,26 @@ def Evaluate(net, dataset, data_name):
             print('Label %d: %s, %f' % (i, type(evaluator.__name__, eval_value)))
     return eval_dict
 
+def Train(train_set, val_set, net, num_epoch, lr, output_dir):
+    solver = Solver(net, train_set, 0.0001, output_dir)
+    solver.criterion = lambda p, t: SegLoss(p, t, num_classes=5) # pred, target, num_classes set here
+    solver.iter_per_sample = 100  # goes to self.dataset.set_iter_per_sample() in Solver
+    for i_epoch in range(0, num_epoch, solver.iter_per_sample):  # say, (0, 2000, 100), so i_epoch = 0, 100, 200...
+        # train
+        solver.dataset.set_trans_prob(i_epoch / 1000.0 + 0.15)
+        loss = solver.step_one_epoch(batch_size=10, iter_size=1)
+        i_epoch = solver.num_epoch  # num_epoch is accumulated in step_one_epoch by iter_per_sample
+        print('Epoch: %d, Loss: %f' % (i_epoch, loss))
 
+        if i_epoch % 100 == 0:
+            save_path = solver.save_model()
+            print('Save model at %s' % save_path)
+
+        # val
+        if i_epoch % 100 == 0:
+            eval_dict_val = Evaluate(net, val_set, 'val')
+            for key, value in eval_dict_val.items():
+                solver.writer.add_scalar(key, value, i_epoch)
 
 
 

@@ -17,7 +17,7 @@ class RefineNet(VoxResNet):
     def __init__(self, in_channels, num_classes, dropout=False):
         super(RefineNet, self).__init__(in_channels, num_classes, ftrlen=[32,64,128,256]) # different from paper and father
         self.dropout = dropout
-        ftr_size = 128 # for refine, here
+        ftr_size = 128  # for refine, here
 
         # adaptive
         self.adaptive1 = nn.Conv3d(32, ftr_size, kernel_size=1) # in_channels == ftrlen list
