@@ -61,7 +61,7 @@ class VoxResNet(nn.Module):
         h1 = self.foward_stage1(x)
         h2 = self.foward_stage2(h1)
         h3 = self.foward_stage3(h2)
-        h4 = self.foward_stage4(h4)  # ???
+        h4 = self.foward_stage4(h3)  # input h4???
         return h4
 
     def foward_stage1(self, x):  # output of each stage goes to classifier

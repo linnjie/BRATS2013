@@ -78,7 +78,7 @@ def Evaluate(net, dataset, data_name):
     for i in range(len(dataset)):
         start = time.time()
         volume, label = dataset[i]  # simgle volume, label
-        print('Processsing %d/%d examples' % (i, len(dataset)))
+        print('Processsing %d/%d examples' % (i+1, len(dataset)))
         volume = Variable(volume).cuda()
         label = label.cuda()
         pred = SplitAndForward(net, volume, 31)  # because most frames are blank?
