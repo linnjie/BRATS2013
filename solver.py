@@ -40,41 +40,41 @@ class Solver(object):
         self.num_epoch = 0
         self.iter_per_sample = 1  # also in ScanDataset __init__
 
-        def create_optimizer(self, lr):
-            optimizer = torch.optim.Adam(self.net.parameters(), lr=lr)
-            return optimizer
+    def create_optimizer(self, lr):
+        optimizer = torch.optim.Adam(self.net.parameters(), lr=lr)
+        return optimizer
 
-        def step_one_epoch(self, batch_size, iter_size=1):
-            self.net.cuda()
-            self.net.train()  # torch.nn.Module method
-            self.dataset.train()
-            self.dataset.set_iter_per_sample(self.iter_per_sample)
-            batch_data = DataLoader(self.dataset, batch_size=batch_size, shuffle=True,
-                                    num_workers=batch_size/2, collate_fn=CollateFn(), pin_memory=True)  # pin_memory
-            for i_batch, (volume, target) in enumerate(batch_data):
-                self.num_iter += batch_size
-                volume = Variable(volume).cuda()
-                target = Variable(target).cuda()
+    def step_one_epoch(self, batch_size, iter_size=1):
+        self.net.cuda()
+        self.net.train()  # torch.nn.Module method
+        self.dataset.train()
+        self.dataset.set_iter_per_sample(self.iter_per_sample)
+        batch_data = DataLoader(self.dataset, batch_size=batch_size, shuffle=True,
+                                num_workers=batch_size/2, collate_fn=CollateFn(), pin_memory=True)  # pin_memory
+        for i_batch, (volume, target) in enumerate(batch_data):
+            self.num_iter += batch_size
+            volume = Variable(volume).cuda()
+            target = Variable(target).cuda()
 
-                # forward
-                pred = self.net(volume)
-                loss = self.criterion(pred, target)
-                self.writer.add_scalar('loss', loss.data[0], self.num_iter)
+            # forward
+            pred = self.net(volume)
+            loss = self.criterion(pred, target)
+            self.writer.add_scalar('loss', loss.data[0], self.num_iter)
 
-                # backward
-                loss.backward()
-                if i_batch % iter_size == 0:
-                    self.optimizer.step()
-                    self.optimizer.zero_grad()
-            self.writer.file_writer.flush()
-            self.num_epoch += self.iter_per_sample
-            return loss.data[0]
+            # backward
+            loss.backward()
+            if i_batch % iter_size == 0:
+                self.optimizer.step()
+                self.optimizer.zero_grad()
+        self.writer.file_writer.flush()
+        self.num_epoch += self.iter_per_sample
+        return loss.data[0]
 
-        def save_model(self):
-            model_name = 'epoch_%04d.pt' % (self.num_epoch)
-            save_path = os.path.join(self.output_dir, 'model', model_name)
-            torch.save(self.net.state_dict(), save_path)
-            return save_path
+    def save_model(self):
+        model_name = 'epoch_%04d.pt' % (self.num_epoch)
+        save_path = os.path.join(self.output_dir, 'model', model_name)
+        torch.save(self.net.state_dict(), save_path)
+        return save_path
 
 
 
