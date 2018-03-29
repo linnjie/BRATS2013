@@ -2,6 +2,7 @@ import random
 
 import numpy as np
 
+
 class CurriculumWrapper:
     def __init__(self, trans, prob):
         self.trans = trans # transformer

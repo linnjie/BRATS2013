@@ -5,6 +5,8 @@ import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 from torch.autograd import Variable
 
+from tensorboardX import SummaryWriter
+
 
 class CollateFn:  # why customize? referred directly in step_one_epoch?
     '''
