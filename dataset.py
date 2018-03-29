@@ -199,7 +199,7 @@ class ScanDataset(Dataset): # inherited from torch class Dataset; normalize and 
         self.data_list = data_list
 
         self.set_trans_prob(1.0) # prob to go through transformation (augmentation)?
-        self.iter_per_sample = 1
+        self.iter_per_sample = 1  # set to expand the dataset, say, 100 times
 
     def __len__(self): # should override to provide size of dataset
         return len(self.data_list) * self.iter_per_sample
@@ -240,8 +240,8 @@ class BRATSDataset(ScanDataset): # this class is to load specific dataset and st
         '''differnt, to change'''
         # means = np.array([[[[ 51.95236969,  74.40973663,  81.23361206,  95.90114594]]]], dtype=np.float32)
         # norms = np.array([[[[ 89.12859344,  124.9729538 ,  137.86834717,  154.61538696]]]], dtype=np.float32)
-        means = np.array([[[[0.16181767, 0.15569262, 0.15443861, 0.20622088]]]], dtype=np.float32)
-        norms = np.array([[[[0.27216652, 0.26292121, 0.25937194, 0.34633893]]]], dtype=np.float32)
+        # means = np.array([[[[0.16181767, 0.15569262, 0.15443861, 0.20622088]]]], dtype=np.float32)
+        # norms = np.array([[[[0.27216652, 0.26292121, 0.25937194, 0.34633893]]]], dtype=np.float32)
         super(BRATSDataset, self).__init__(folder_paths, sample_shape, means, norms, is_train)
 
     def load_data(self, folder_paths): # folders: e.g. 0001; folder: e.g. VSD...

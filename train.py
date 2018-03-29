@@ -23,14 +23,14 @@ def GetDataset(fold, num_fold, need_train=True, need_val=True):
             train_folder_paths.append(path)
 
     if need_train and len(train_folder_paths) > 0:
-        train_set = BRATSDataset(train_folder_paths,sample_shape=(128, 128, 12), is_train=True) # train_folders: e.g. 0001
+        train_set = BRATSDataset(train_folder_paths, sample_shape=(128, 128, 12), is_train=True) # train_folders: e.g. 0001
     else:
         train_set = None
 
     if need_val and len(val_folder_paths) > 0:
         val_set = BRATSDataset(val_folder_paths, is_train=False)
     else:
-        val_sel = None
+        val_set = None
 
     return train_set, val_set
 
@@ -46,14 +46,14 @@ def Train(train_set, val_set, net, num_epoch, lr, output_dir):
         print('Epoch: %d, Loss: %f' % (i_epoch, loss))
 
         if i_epoch % 100 == 0:
-            save_path = Solver.save_model()
+            save_path = solver.save_model()
             print('Save model at %s' % save_path)
 
-        '''    LATER!
         # val
         if i_epoch % 100 == 0:
             eval_dict_val = Evaluate(net, val_set, 'val')
-            '''
+            for key, value in eval_dict_val.items():
+                solver.writer.add_scalar(key, value, i_epoch)
 
 
 if __name__ == '__main__':
@@ -74,5 +74,4 @@ if __name__ == '__main__':
         os.makedirs(os.path.join(output_dir, 'tensorboard'))
     except:
         pass
-    Train(train_set, val_set, net,
-        num_epoch=100, lr=0.0001, output_dir=output_dir)
+    Train(train_set, val_set, net, num_epoch=100, lr=0.0001, output_dir=output_dir)

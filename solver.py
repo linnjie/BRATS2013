@@ -38,7 +38,7 @@ class Solver(object):
 
         self.criterion = None # set outside; lambda p, t
         self.writer = SummaryWriter(os.path.join(output_dir, 'tensorboard'))
-        self.num_iter = 0
+        self.num_iter = 0  # number of examples passed through; used only in tensorboardX ?
         self.num_epoch = 0
         self.iter_per_sample = 1  # also in ScanDataset __init__
 
@@ -65,7 +65,7 @@ class Solver(object):
 
             # backward
             loss.backward()
-            if i_batch % iter_size == 0:
+            if i_batch % iter_size == 0:  # set iter_size to accumulate gradients and update at one time, more stable
                 self.optimizer.step()
                 self.optimizer.zero_grad()
         self.writer.file_writer.flush()

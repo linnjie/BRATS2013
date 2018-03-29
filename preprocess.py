@@ -45,8 +45,8 @@ class RandomRotate:
 
         # rotate
         num_rotate = random.randint(0, 3)  # [0, 3]
-        if rotate_num > 0:
-            img = np.rot90(imgg, num_rotate)
+        if num_rotate > 0:
+            img = np.rot90(img, num_rotate)
             mask = np.rot90(mask, num_rotate)
         return img.copy(), mask.copy() # why copy?
 
