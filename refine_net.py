@@ -5,6 +5,14 @@ import torch.nn.functional as F
 from vox_resnet import VoxResNet
 
 
+class NonLocalBlock(nn.Module):
+    def __init__(self, in_channels):
+        super(NonLocalBlock, self).__init__()
+        self.theta = nn.Conv3d(in_channels, in_channels/2, kernel_size=1)
+        self.phi = nn.Conv3d(in_channels, in_channels/2, kernel_size=1)
+        self.g = nn.Conv3d(in_channels, in_channels/2, kernel_size=1)
+        self.h = nn.Conv3d(in_channels/2, in_channels, kernel_size=1)
+
 class RefineNet(VoxResNet):
     def __init__(self, in_channels, num_classes, dropout=False):
         super(RefineNet, self).__init__(in_channels, num_classes, ftrlen=[32,64,128,256]) # different from paper and father
