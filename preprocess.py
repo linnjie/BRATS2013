@@ -5,16 +5,16 @@ import numpy as np
 
 class CurriculumWrapper:
     def __init__(self, trans, prob):
-        self.trans = trans # transformer
+        self.trans = trans  # transformer
         self.prob = prob
 
     def __call__(self, *args):
         if random.random() < self.prob: # if prob, perform trans, otherwise return original
             return self.trans(*args)
         else:
-            if len(args) == 1: # [volume, label]
+            if len(args) == 1:  # [volume, label]
                 args = args[0]
-            return args # volume
+            return args  # volume
 
 
 

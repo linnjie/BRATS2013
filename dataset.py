@@ -221,10 +221,9 @@ class ScanDataset(Dataset): # inherited from torch class Dataset; normalize and 
 
     def set_trans_prob(self, prob):
         self.trans_prob = prob
-        self.trans_all = [CurriculumWrapper(ReColor(alpha=0.05), prob)] # all means data and label
-        self.trans_data = [SampleVolume(dst_shape=self.sample_shape, pos_ratio=0.5),
-                           CurriculumWrapper(RandomRotate(random_flip=True),
-                           prob)]
+        self.trans_all = [SampleVolume(dst_shape=self.sample_shape, pos_ratio=0.5),
+                           CurriculumWrapper(RandomRotate(random_flip=True), prob)]
+        self.trans_data = [CurriculumWrapper(ReColor(alpha=0.05), prob)]  # all means data and label
 
     def set_iter_per_sample(self, iter_per_sample):
         self.iter_per_sample = iter_per_sample
