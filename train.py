@@ -75,13 +75,12 @@ def Evaluate(net, dataset, data_name):
             new_label = label
         new_volume = Variable(new_volume).cuda()
         new_label = new_label.cuda()
-        pred = SplitAndForward(net, new_volume, 22)  # limit memory usage
+        pred = SplitAndForward(net, new_volume, 15)  # limit memory usage
         pred = torch.max(pred, dim=1)[1]  # most probable class, (1, D, H, W)
         # max returns (max value, argmax), data type: (Tensor, LongTensor)
         end = time.time()
         print('Time: %f' % (end - start))
         total_time += end - start
-        print('type of total_time: ', type(total_time))
         pred = pred.long()
 
         # 1 necrosis, 2 edema, 3 non-enhancing tumor, 4 enhancing tumor, 0 everything else
@@ -94,7 +93,7 @@ def Evaluate(net, dataset, data_name):
     for i in range(5):
         for evaluator in evaluators:
             eval_value = evaluator.Eval()
-            eval_dict['/'.join([data_name, type(evaluator).__name__, i])] = eval_value
+            eval_dict['/'.join([data_name, type(evaluator).__name__, str(i)])] = eval_value
             print('Label %d: %s, %f' % (i, type(evaluator).__name__, eval_value))
     return eval_dict
 
