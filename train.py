@@ -47,6 +47,26 @@ def SplitAndForward(net, volume, split_size=31): # x is single volume
     pred = torch.cat(pred, dim=2)  # NCDHW
     return pred
 
+def Resize(volume, label=None, multiplier=8):
+    h = volume.shape[2]
+    w = volume.shape[3]
+    if h % multiplier != 0 or w % multiplier != 0:
+        print('volume.shape: ', volume.shape)
+        new_h = (h // multiplier + 1) * multiplier
+        new_w = (w // multiplier + 1) * multiplier
+        new_volume = torch.zeros(volume.shape[0], volume.shape[1], new_h, new_w)
+        new_volume[:, :, :h, :w] = volume
+        print('new_volume.shape: ', new_volume.shape)
+        if label is not None:
+            print('label.shape: ', label.shape)
+            new_label = torch.zeros(volume.shape[1], new_h, new_w)
+            new_label[:, :h, :w] = label
+            print('new_label.shape: ', new_label.shape)
+    else:
+        new_volume = volume
+        new_label = label
+    return new_volume, new_label
+
 
 def Evaluate(net, dataset, data_name):
     net.eval()

@@ -11,14 +11,16 @@ import cv2
 import numpy as np
 
 from refine_net import RefineNet
-from dataset import BRATSDataset, DrawLabel
-from train import SplitAndForward, GetDataset
+from dataset import BRATSDataset, DrawLabel, FindMhaFilename
+from train import SplitAndForward, GetDataset, Resize
 
 def GetID(folder_path):
     folders = os.listdir(folder_path)
     for folder in folders:
-        id = folder.split('.')[-2]
-        assert id.isdigit()
+        filename = FindMhaFilename(folder)
+        print('filename:', filename)
+        id = filename.split('.')[-2]
+        print('id: ', id)
         return id
 
 def Cvt2Mha(pred):
@@ -43,6 +45,7 @@ def Evaluate(nets, dataset, output_dir=None):
     for i, (volume, _) in enumerate(dataset):
         folder_path = dataset.folder_paths[i]
         print('Processing %d %s' % (i, folder_path))
+        volume = Resize(volume)
         volume = Variable(volume, volatile=True)  # inference mode (test time)
         lock = threading.Lock()  # ?
         result = {}
@@ -55,8 +58,8 @@ def Evaluate(nets, dataset, output_dir=None):
             for thread in threads:
                 thread.join()
             pred = result[0]
-            for i in range(1, len(nets)):
-                pred += result[i].cuda(0)
+            for j in range(1, len(nets)):
+                pred += result[j].cuda(0)
         else:
             PredictWorker(nets[0], volume, 0, result, lock)
             pred = result[0]
