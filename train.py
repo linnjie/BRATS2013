@@ -11,7 +11,6 @@ from dataset import BRATSDataset
 
 from evaluator import EvalDiceScore, EvalSensitivity, EvalPrecision
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '3'
 
 def GetDataset(fold, num_fold, need_train=True, need_val=True): # get train and val set
     data_root = './BRATS-2/Image_Data/HG/'

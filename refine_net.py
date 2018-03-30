@@ -66,7 +66,7 @@ class RefineNet(VoxResNet):
             h1 = self.dropout1(h1)
             h2 = self.dropout2(h2)
             h3 = self.dropout3(h3)
-            h4 = self.dropout4(h4) # ?
+            h4 = self.dropout4(h4)  # ??
 
         p4 = h4
         p3 = self.upsample_3d(p4, 2) + h3 # dimension matched because VoxResNet conv stride of 2?

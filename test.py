@@ -28,6 +28,7 @@ def Cvt2Mha(pred):
 
 
 def PredictWorker(net, volume, cuda_id, result, lock):
+    print(cuda_id)
     net.eval()
     net.cuda(cuda_id)
     volume = volume.cuda(cuda_id)
@@ -78,9 +79,9 @@ def Evaluate(nets, dataset, output_dir=None):
 
 def GetTestSet(mode):
     if mode == 'test':
-        data_root = './BRATS_Leaderboard/HG/'
+        data_root = './BRATS_Leaderboard/LeaderBoard/HG/'
         HG_folder_paths = [os.path.join(data_root, folder) for folder in sorted(os.listdir(data_root))]
-        data_root = './BRATS-2/Leaderboard/LG/'
+        data_root = './BRATS_Leaderboard/LeaderBoard/LG/'
         LG_folder_paths = [os.path.join(data_root, folder) for folder in sorted(os.listdir(data_root))]
 
         test_folder_paths = HG_folder_paths + LG_folder_paths  # path ends with 0116, etc
