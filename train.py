@@ -68,12 +68,15 @@ def Evaluate(net, dataset, data_name):
             new_h = (h // 8 + 1) * 8
             new_w = (w // 8 + 1) * 8
             new_volume = torch.zeros(volume.shape[0], volume.shape[1], new_h, new_w)
-            new_volume[:, :, :h, :w] = sub_x
+            new_label = torch.zeros(volume.shape[0], volume.shape[1], new_h, new_w)
+            new_volume[:, :, :h, :w] = volume
+            new_label[:, :, :h, :w] = label
             print('new_volume.shape: ', new_volume.shape)
         else:
             new_volume = volume
+            new_label = label
         new_volume = Variable(new_volume).cuda()
-        label = label.cuda()
+        new_label = new_label.cuda()
         pred = SplitAndForward(net, new_volume, 22)  # limit memory usage
         pred = torch.max(pred, dim=1)[1]  # most probable class, (1, D, H, W)
         # max returns (max value, argmax), data type: (Tensor, LongTensor)
@@ -112,7 +115,7 @@ def Train(train_set, val_set, net, num_epoch, lr, output_dir):
             print('Save model at %s' % save_path)
 
         # val
-        if i_epoch % 100 == 0:
+        if i_epoch % 1 == 0:
             eval_dict_val = Evaluate(net, val_set, 'val')
             for key, value in eval_dict_val.items():
                 solver.writer.add_scalar(key, value, i_epoch)
