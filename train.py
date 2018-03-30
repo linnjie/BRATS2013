@@ -42,7 +42,19 @@ def GetDataset(fold, num_fold, need_train=True, need_val=True):
 def SplitAndForward(net, x, split_size=31): # x is single volume
     pred = []
     for i, sub_x in enumerate(torch.split(x, split_size, dim=1)):  # CDHW; split tensor into chunks
-        result = net(sub_x.unsqueeze(0))  # NCDHW: (1, num_classes, num_chunks, H, W )
+        if i == 0:
+            print('sub_x.shape: ', sub_x.shape)
+        h = sub_x.shape[2]
+        w = sub_x.shape[3]
+        if h % 8 != 0 or w % 8 != 0:
+            new_h = (h // 8 + 1) * 8
+            new_w = (w // 8 + 1) * 8
+            new_sub_x = torch.zeros(sub_x.shape[0], sub_x.shape[1], new_h, new_w)
+            new_sub_x[:, :, :h, :w] = sub_x
+            print('new_sub_x.shape: ', new_sub_x.shape) 
+        else:
+            new_sub_x = sub_x
+        result = net(new_sub_x.unsqueeze(0))  # NCDHW: (1, num_classes, num_chunks, H, W )
         pred.append(result.data)   # concat D back
     pred = torch.cat(pred, dim=2)  # NCDHW
     return pred
