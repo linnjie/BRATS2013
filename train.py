@@ -62,6 +62,8 @@ def Resize(volume, label=None, multiplier=8):
             new_label = torch.zeros(volume.shape[1], new_h, new_w)
             new_label[:, :h, :w] = label
             print('new_label.shape: ', new_label.shape)
+        else:
+            new_label = label
     else:
         new_volume = volume
         new_label = label

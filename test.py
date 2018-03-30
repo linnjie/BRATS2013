@@ -45,8 +45,8 @@ def Evaluate(nets, dataset, output_dir=None):
     for i, (volume, _) in enumerate(dataset):
         folder_path = dataset.folder_paths[i]
         print('Processing %d %s' % (i, folder_path))
-        volume = Resize(volume)
-        volume, _ = Variable(volume, volatile=True)  # inference mode (test time)
+        volume, _ = Resize(volume)
+        volume = Variable(volume, volatile=True)  # inference mode (test time)
         lock = threading.Lock()  # ?
         result = {}
         if len(nets) > 1:

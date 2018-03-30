@@ -22,7 +22,7 @@ from preprocess import ReColor, RandomRotate, SampleVolume, CurriculumWrapper
 
 def FindMhaFilename(data_root, folder):
     filenames = os.listdir(os.path.join(data_root, folder))
-    mha_filename = [f for f in filenames if f.split('.')[-1] == 'mha'][0]
+    filename = [f for f in filenames if f.split('.')[-1] == 'mha'][0]
     return filename
 
 def LoadOnePersonMha(data_root):
