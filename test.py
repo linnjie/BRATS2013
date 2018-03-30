@@ -17,7 +17,7 @@ from train import SplitAndForward, GetDataset, Resize
 def GetID(folder_path):
     folders = os.listdir(folder_path)
     for folder in folders:
-        filename = FindMhaFilename(folder)
+        filename = FindMhaFilename(folder_path, folder)
         print('filename:', filename)
         id = filename.split('.')[-2]
         print('id: ', id)
@@ -46,7 +46,7 @@ def Evaluate(nets, dataset, output_dir=None):
         folder_path = dataset.folder_paths[i]
         print('Processing %d %s' % (i, folder_path))
         volume = Resize(volume)
-        volume = Variable(volume, volatile=True)  # inference mode (test time)
+        volume, _ = Variable(volume, volatile=True)  # inference mode (test time)
         lock = threading.Lock()  # ?
         result = {}
         if len(nets) > 1:

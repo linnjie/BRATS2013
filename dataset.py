@@ -20,7 +20,7 @@ from torch.utils.data import Dataset
 
 from preprocess import ReColor, RandomRotate, SampleVolume, CurriculumWrapper
 
-def FindMhaFilename(folder):
+def FindMhaFilename(data_root, folder):
     filenames = os.listdir(os.path.join(data_root, folder))
     mha_filename = [f for f in filenames if f.split('.')[-1] == 'mha'][0]
     return filename
