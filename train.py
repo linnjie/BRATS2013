@@ -25,7 +25,7 @@ def GetDataset(fold, num_fold, need_train=True, need_val=True):
             val_folder_paths.append(path)
         else:
             train_folder_paths.append(path)
-    print('val_folder_paths: ', val_folder_paths)
+
     if need_train and len(train_folder_paths) > 0:
         train_set = BRATSDataset(train_folder_paths, sample_shape=(128, 128, 12), is_train=True) # train_folders: e.g. 0001
     else:
@@ -42,7 +42,6 @@ def GetDataset(fold, num_fold, need_train=True, need_val=True):
 def SplitAndForward(net, x, split_size=31): # x is single volume
     pred = []
     for i, sub_x in enumerate(torch.split(x, split_size, dim=1)):  # CDHW; split tensor into chunks
-        print('sub_x.shape: ', sub_x.shape)
         result = net(sub_x.unsqueeze(0))  # NCDHW: (1, num_classes, num_chunks, H, W )
         pred.append(result.data)   # concat D back
     pred = torch.cat(pred, dim=2)  # NCDHW
