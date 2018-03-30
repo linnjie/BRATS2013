@@ -97,14 +97,7 @@ def GetTestSet(mode):
 def GetModel(model_file_path):
     net = RefineNet(4, 5)
     state_dict = torch.load(model_file_path)
-    renamed_state_dict = {}
-    count = 0
-    for key, value in state_dict.items():
-        while count < 1:
-            print('key: ', key)
-            count += 1
-        renamed_state_dict['.'join(key.split('.')[:1])] = value
-    net.load_state_dict(renamed_state_dict)
+    net.load_state_dict(state_dict)
     return net
 
 
@@ -114,7 +107,7 @@ if __name__ == '__main__':
                         # int: get result of one train fold (for validation)
                         # single test_folder_path: speed test
 
-    nets = [GetModel(path) for path in model_file_paths]
+    nets = [GetModel(path) for path in model_file_paths.split(',')]
     print('Nets loaded.')
 
     test_set = GetTestSet(mode)
