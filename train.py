@@ -40,10 +40,10 @@ def GetDataset(fold, num_fold, need_train=True, need_val=True): # get train and 
     return train_set, val_set
 
 
-def SplitAndForward(net, x, split_size=31): # x is single volume
+def SplitAndForward(net, volume, split_size=31): # x is single volume
     pred = []
-    for i, sub_x in enumerate(torch.split(x, split_size, dim=1)):  # CDHW; split tensor into chunks
-        result = net(sub_x.unsqueeze(0))  # NCDHW: (1, num_classes, num_chunks, H, W )
+    for i, chunk in enumerate(torch.split(volume, split_size, dim=1)):  # CDHW; split tensor into chunks
+        result = net(chunk.unsqueeze(0))  # NCDHW: (1, num_classes, num_chunks, H, W )
         pred.append(result.data)   # concat D back
     pred = torch.cat(pred, dim=2)  # NCDHW
     return pred
@@ -140,4 +140,4 @@ if __name__ == '__main__':
         os.makedirs(os.path.join(output_dir, 'tensorboard'))
     except:
         pass
-    Train(train_set, val_set, net, num_epoch=100, lr=0.0001, output_dir=output_dir)
+    Train(train_set, val_set, net, num_epoch=1000, lr=0.0001, output_dir=output_dir)

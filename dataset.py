@@ -30,7 +30,7 @@ def LoadOnePersonMha(data_root):
     for folder in folders:
         data_type = folder.split('.')[4] # data_type: MR_Flair, MR_T1, MR_T2, MR_T1c, OT
         filenames = os.listdir(os.path.join(data_root, folder))
-        mha_filename = [f for f in filenames if f.split('.')[-1]=='mha']
+        mha_filename = [f for f in filenames if f.split('.')[-1] == 'mha']
         mha_file = os.path.join(data_root, folder, *mha_filename)
         mha_data = sitk.ReadImage(mha_file)
         person_data[data_type] = sitk.GetArrayFromImage(mha_data).transpose([1, 2, 0])
@@ -52,7 +52,7 @@ def StackData(person_data):
 
 
 
-def DrawLabel(ot_data, max_label):
+def DrawLabel(label_data, max_label):
     color_bar = [
         (0, 0, 0),  # 0 black
         (0, 255, 0),  # 1 green
@@ -62,13 +62,13 @@ def DrawLabel(ot_data, max_label):
         (0, 255, 255),  # 5 cyan
         (255, 255, 0)  # 6 yellow
     ]
-    R = np.zeros(ot_data.shape, np.uint8)
-    G = np.zeros(ot_data.shape, np.uint8)
-    B = np.zeros(ot_data.shape, np.uint8)  # (0, 0, 0) black background
+    R = np.zeros(label_data.shape, np.uint8)
+    G = np.zeros(label_data.shape, np.uint8)
+    B = np.zeros(label_data.shape, np.uint8)  # (0, 0, 0) black background
     for label in range(1, max_label + 1):  # start from 1, aka, green mask
-        R[ot_data == label] = color_bar[label][0]  # say R[ot_data==1] = color_bar[1][0] R
-        G[ot_data == label] = color_bar[label][1]  # G[ot_data==1] = color_bar[1][1] G
-        B[ot_data == label] = color_bar[label][2]  # B[ot_data==1] = color_bar[1][2] B as result, #1 green
+        R[label_data == label] = color_bar[label][0]  # say R[ot_data==1] = color_bar[1][0] R
+        G[label_data == label] = color_bar[label][1]  # G[ot_data==1] = color_bar[1][1] G
+        B[label_data == label] = color_bar[label][2]  # B[ot_data==1] = color_bar[1][2] B as result, #1 green
     return cv2.merge([B, G, R])  # RGB to BGR
 
 def MakeGrid(img_data, cols=8):
@@ -114,7 +114,7 @@ def Visualize(person_data):
             gt = (ot_data > 0).astype(np.uint8)
             _, contours, _ = cv2.findContours(gt.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
             # 1 channel to OpenCV BGR
-            ot_data = DrawLabel(ot_data, 4)
+            ot_data = DrawLabel(label_data=ot_data, max_label=4)
 
 
         # all imgs *including* OT: get one slice; to 3 channels; save as JPEG
@@ -238,7 +238,7 @@ class ScanDataset(Dataset): # inherited from torch class Dataset; normalize and 
 class BRATSDataset(ScanDataset): # this class is to load specific dataset and store stats
     def __init__(self, folder_paths, sample_shape=(96, 96, 5), means=None, norms=None, is_train=False):
         self.name = 'BRATS'
-        '''differnt, to change'''
+        '''different, to change'''
         # means = np.array([[[[ 51.95236969,  74.40973663,  81.23361206,  95.90114594]]]], dtype=np.float32)
         # norms = np.array([[[[ 89.12859344,  124.9729538 ,  137.86834717,  154.61538696]]]], dtype=np.float32)
         # means = np.array([[[[0.16181767, 0.15569262, 0.15443861, 0.20622088]]]], dtype=np.float32)
