@@ -11,8 +11,9 @@ from dataset import BRATSDataset
 
 from evaluator import EvalDiceScore, EvalSensitivity, EvalPrecision
 
+os.environ['CUDA_VISIBLE_DEVICES'] = '3'
 
-def GetDataset(fold, num_fold, need_train=True, need_val=True):
+def GetDataset(fold, num_fold, need_train=True, need_val=True): # get train and val set
     data_root = './BRATS-2/Image_Data/HG/'
     HG_folder_paths = [os.path.join(data_root, folder) for folder in sorted(os.listdir(data_root))]
     data_root = './BRATS-2/Image_Data/LG/'
@@ -42,19 +43,7 @@ def GetDataset(fold, num_fold, need_train=True, need_val=True):
 def SplitAndForward(net, x, split_size=31): # x is single volume
     pred = []
     for i, sub_x in enumerate(torch.split(x, split_size, dim=1)):  # CDHW; split tensor into chunks
-        if i == 0:
-            print('sub_x.shape: ', sub_x.shape)
-        h = sub_x.shape[2]
-        w = sub_x.shape[3]
-        if h % 8 != 0 or w % 8 != 0:
-            new_h = (h // 8 + 1) * 8
-            new_w = (w // 8 + 1) * 8
-            new_sub_x = torch.zeros(sub_x.shape[0], sub_x.shape[1], new_h, new_w)
-            new_sub_x[:, :, :h, :w] = sub_x
-            print('new_sub_x.shape: ', new_sub_x.shape) 
-        else:
-            new_sub_x = sub_x
-        result = net(new_sub_x.unsqueeze(0))  # NCDHW: (1, num_classes, num_chunks, H, W )
+        result = net(sub_x.unsqueeze(0))  # NCDHW: (1, num_classes, num_chunks, H, W )
         pred.append(result.data)   # concat D back
     pred = torch.cat(pred, dim=2)  # NCDHW
     return pred
@@ -70,9 +59,22 @@ def Evaluate(net, dataset, data_name):
         start = time.time()
         volume, label = dataset[i]  # simgle volume, label
         print('Processsing %d/%d examples' % (i+1, len(dataset)))
-        volume = Variable(volume).cuda()
+
+        if i == 0:
+            print('volume.shape: ', volume.shape)
+        h = volume.shape[2]
+        w = volume.shape[3]
+        if h % 8 != 0 or w % 8 != 0:
+            new_h = (h // 8 + 1) * 8
+            new_w = (w // 8 + 1) * 8
+            new_volume = torch.zeros(volume.shape[0], volume.shape[1], new_h, new_w)
+            new_volume[:, :, :h, :w] = sub_x
+            print('new_volume.shape: ', new_volume.shape)
+        else:
+            new_volume = volume
+        new_volume = Variable(new_volume).cuda()
         label = label.cuda()
-        pred = SplitAndForward(net, volume, 22)  # limit memory usage
+        pred = SplitAndForward(net, new_volume, 22)  # limit memory usage
         pred = torch.max(pred, dim=1)[1]  # most probable class, (1, D, H, W)
         # max returns (max value, argmax), data type: (Tensor, LongTensor)
         end = time.time()
