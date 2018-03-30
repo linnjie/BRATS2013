@@ -59,9 +59,7 @@ def Evaluate(net, dataset, data_name):
         start = time.time()
         volume, label = dataset[i]  # simgle volume, label
         print('Processsing %d/%d examples' % (i+1, len(dataset)))
-
-        if i == 0:
-            print('volume.shape: ', volume.shape)
+        print('volume.shape: ', volume.shape, 'label.shape: ', label.shape)
         h = volume.shape[2]
         w = volume.shape[3]
         if h % 8 != 0 or w % 8 != 0:
@@ -70,8 +68,8 @@ def Evaluate(net, dataset, data_name):
             new_volume = torch.zeros(volume.shape[0], volume.shape[1], new_h, new_w)
             new_label = torch.zeros(volume.shape[0], volume.shape[1], new_h, new_w)
             new_volume[:, :, :h, :w] = volume
-            new_label[:, :, :h, :w] = label
-            print('new_volume.shape: ', new_volume.shape)
+            new_label[:, :h, :w] = label
+            print('new_volume.shape: ', new_volume.shape, 'new_label.shape: ', new_label.shape)
         else:
             new_volume = volume
             new_label = label
@@ -88,7 +86,7 @@ def Evaluate(net, dataset, data_name):
         # 1 necrosis, 2 edema, 3 non-enhancing tumor, 4 enhancing tumor, 0 everything else
         for j in range(5):
             for evaluator in evaluators:
-                evaluator.AddResult(pred == i, label == i)
+                evaluator.AddResult(pred == i, new_label == i)
     print('Average time: %f' % total_time/(len(dataset)-1))
 
     eval_dict = {}
