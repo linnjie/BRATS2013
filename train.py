@@ -66,7 +66,7 @@ def Evaluate(net, dataset, data_name):
             new_h = (h // 8 + 1) * 8
             new_w = (w // 8 + 1) * 8
             new_volume = torch.zeros(volume.shape[0], volume.shape[1], new_h, new_w)
-            new_label = torch.zeros(volume.shape[0], volume.shape[1], new_h, new_w)
+            new_label = torch.zeros(volume.shape[1], new_h, new_w)
             new_volume[:, :, :h, :w] = volume
             new_label[:, :h, :w] = label
             print('new_volume.shape: ', new_volume.shape, 'new_label.shape: ', new_label.shape)
@@ -81,20 +81,21 @@ def Evaluate(net, dataset, data_name):
         end = time.time()
         print('Time: %f' % (end - start))
         total_time += end - start
+        print('type of total_time: ', type(total_time))
         pred = pred.long()
 
         # 1 necrosis, 2 edema, 3 non-enhancing tumor, 4 enhancing tumor, 0 everything else
         for j in range(5):
             for evaluator in evaluators:
                 evaluator.AddResult(pred == i, new_label == i)
-    print('Average time: %f' % total_time/(len(dataset)-1))
+    print('Average time: %f' % (total_time/(len(dataset)-1)))
 
     eval_dict = {}
     for i in range(5):
         for evaluator in evaluators:
             eval_value = evaluator.Eval()
             eval_dict['/'.join([data_name, type(evaluator).__name__, i])] = eval_value
-            print('Label %d: %s, %f' % (i, type(evaluator.__name__, eval_value)))
+            print('Label %d: %s, %f' % (i, type(evaluator).__name__, eval_value))
     return eval_dict
 
 def Train(train_set, val_set, net, num_epoch, lr, output_dir):
@@ -113,7 +114,7 @@ def Train(train_set, val_set, net, num_epoch, lr, output_dir):
             print('Save model at %s' % save_path)
 
         # val
-        if i_epoch % 1 == 0:
+        if i_epoch % 100 == 0:
             eval_dict_val = Evaluate(net, val_set, 'val')
             for key, value in eval_dict_val.items():
                 solver.writer.add_scalar(key, value, i_epoch)
