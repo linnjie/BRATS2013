@@ -110,8 +110,6 @@ def Visualize(person_data):
         if groundtruth:
             # get one slice
             ot_data = normalized_data['OT'][:, :, i]
-            while i == 1:
-                print('ot_data: ', ot_data)
             # find contours
             gt = (ot_data > 0).astype(np.uint8)
             _, contours, _ = cv2.findContours(gt.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -201,7 +199,7 @@ class ScanDataset(Dataset): # inherited from torch class Dataset; normalize and 
         self.label_list = label_list
         self.data_list = data_list
 
-        self.set_trans_prob(1.0) # prob to go through transformation (augmentation)?
+        self.set_trans_prob(1.0)
         self.iter_per_sample = 1  # set to expand the dataset, say, 100 times
 
     def __len__(self): # should override to provide size of dataset

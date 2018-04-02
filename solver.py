@@ -25,7 +25,7 @@ class CollateFn:  # why customize? referred directly in step_one_epoch?
 def SegLoss(pred, target, num_classes=5, loss_fn=nn.CrossEntropyLoss()):
     pred = pred.permute(0, 2, 3, 4, 1).contiguous()  # call contiguous() before view(), but why?
     pred = pred.view(-1, num_classes)
-    target = target.view(-1)  # what kind of label?
+    target = target.view(-1)
     loss = loss_fn(pred, target.long())
     return loss
 
@@ -54,8 +54,6 @@ class Solver(object):
         batch_data = DataLoader(self.dataset, batch_size=batch_size, shuffle=True,
                                 num_workers=batch_size/2, collate_fn=CollateFn(), pin_memory=True)  # pin_memory
         for i_batch, (volume, target) in enumerate(batch_data):
-            while i_batch == 1:
-                print('target: ', target)
             self.num_iter += batch_size
             volume = Variable(volume).cuda()
             target = Variable(target).cuda()
