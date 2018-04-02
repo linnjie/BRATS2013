@@ -30,7 +30,7 @@ def Cvt2Mha(pred):
 
 
 def PredictWorker(net, volume, cuda_id, result, lock):
-    print(cuda_id)
+    print('cuda_id:', cuda_id)
     net.eval()
     net.cuda(cuda_id)
     volume = volume.cuda(cuda_id)
@@ -44,27 +44,27 @@ def Evaluate(nets, dataset, output_dir=None):
     dataset.eval()
     for i, (volume, _) in enumerate(dataset):
         folder_path = dataset.folder_paths[i]
-        print('Processing %d %s' % (i, folder_path))
+        print('Processing %d %s' % ((i+1)/len(dataset), folder_path))
         volume, _ = Resize(volume)
         volume = Variable(volume, volatile=True)  # inference mode (test time)
         lock = threading.Lock()  # ?
         result = {}
         if len(nets) > 1:
             threads = [threading.Thread(target=PredictWorker,
-                                        args=(net, volume, cuda_id, result, lock))
-                       for cuda_id, net in enumerate(nets)]  # one net per thread (cuda_id)
+                                        args=(net, volume, i, result, lock))
+                       for i, net in enumerate(nets)]  # one net per thread (cuda_id)
             for thread in threads:
                 thread.start()
             for thread in threads:
                 thread.join()
             pred = result[0]
             for j in range(1, len(nets)):
-                pred += result[j].cuda(0)
+                pred += result[j].cuda(0)  # why add cuda(0)
         else:
             PredictWorker(nets[0], volume, 0, result, lock)
             pred = result[0]
         pred = torch.max(pred, dim=0)[1]
-        pred = pred.cpu().numpy()
+        pred = pred.cpu().numpy()  # cpu()?
         print('pred.shape: ', pred.shape)
 
         # save result
@@ -74,7 +74,7 @@ def Evaluate(nets, dataset, output_dir=None):
             sitk.WriteImage(mha_data, os.path.join(output_dir, mha_file))
         else:
             for j in range(pred.shape[0]):  # i: one volume, j: one slice
-                pred = DrawLabel(label_data=pred[i, :, :], max_label=4)
+                pred = DrawLabel(label_data=pred[j, :, :], max_label=4)
                 cv2.imwrite('/image/test/%03d_pred.jpg' % i, pred)
                 cv2.imshow('pred', pred)
                 cv2.waitKey(50)
@@ -106,10 +106,10 @@ def GetModel(model_file_path):
 
 
 if __name__ == '__main__':
-    model_file_paths = sys.argv[1]
+    model_file_paths = sys.argv[1]  # ./output/brast_*/model/epoch_0*00.pt, ...
     mode = sys.argv[2]  # 'test': get all test result
                         # int: get result of one train fold (for validation)
-                        # single test_folder_path: speed test
+                        # single test_folder_path: speed test, ./BRATS_Leaderboard/LeaderBoard/HG/0116
 
     nets = [GetModel(path) for path in model_file_paths.split(',')]
     print('Nets loaded.')
@@ -117,10 +117,13 @@ if __name__ == '__main__':
     test_set = GetTestSet(mode)
     print('Test set loaded.')
 
-    output_dir = os.path.join('./result_BRATS')
-    try:
-        os.makedirs(output_dir)
-    except:
-        pass
+    if mode.isdigit() or mode == 'test':
+        output_dir = os.path.join('./result_BRATS', mode)
+        try:
+            os.makedirs(output_dir)
+        except:
+            pass
+    else:
+        output_dir = None
 
     Evaluate(nets, test_set, output_dir)
