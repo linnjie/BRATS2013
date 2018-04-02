@@ -56,7 +56,7 @@ def StackData(person_data):
 
 
 def DrawLabel(label_data, max_label):
-    color_bar = [
+    color_bar = [  # RGB
         (0, 0, 0),  # 0 black
         (0, 255, 0),  # 1 green
         (0, 0, 255),  # 2 blue
