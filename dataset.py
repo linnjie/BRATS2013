@@ -52,9 +52,6 @@ def StackData(person_data):
     stacked_data = np.concatenate(stacked_data, axis=3)
     return stacked_data, label
 
-
-
-
 def DrawLabel(label_data, max_label):
     color_bar = [  # RGB
         (0, 0, 0),  # 0 black
@@ -113,6 +110,8 @@ def Visualize(person_data):
         if groundtruth:
             # get one slice
             ot_data = normalized_data['OT'][:, :, i]
+            while i == 1:
+                print('ot_data: ', ot_data)
             # find contours
             gt = (ot_data > 0).astype(np.uint8)
             _, contours, _ = cv2.findContours(gt.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -142,8 +141,8 @@ def Visualize(person_data):
 
         # save ground truth as JPEG
         if groundtruth and len(contours) > 0:
-            cv2.imwrite('./image/dataset/%03d_OT.jpg' % i, ot_data) # overwrite?
-            imgs['OT'] = ot_data # overwrite?
+            cv2.imwrite('./image/dataset/%03d_OT.jpg' % i, ot_data)  # overwrite
+            imgs['OT'] = ot_data  # overwrite
 
         # draw text
         for img_type, img_data in imgs.items():
@@ -218,7 +217,7 @@ class ScanDataset(Dataset): # inherited from torch class Dataset; normalize and 
                 volume, label = trans(volume, label)
             for trans in self.trans_data:
                 volume = trans(volume)
-        volume = torch.Tensor(volume.copy()).permute(3, 2, 0, 1) # HWDC to CDHW order??
+        volume = torch.Tensor(volume.copy()).permute(3, 2, 0, 1) # HWDC to CDHW
         if label is not None:
             label = torch.Tensor(label.copy()).permute(2, 0, 1) # HWD to DHW
         return volume, label

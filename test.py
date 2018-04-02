@@ -74,10 +74,10 @@ def Evaluate(nets, dataset, output_dir=None):
             sitk.WriteImage(mha_data, os.path.join(output_dir, mha_file))
         else:
             for j in range(pred.shape[0]):  # i: one volume, j: one slice
-                
+
                 pred_img = DrawLabel(label_data=pred[j, :, :], max_label=4)
                 cv2.imwrite('/image/test/%03d_pred.jpg' % j, pred_img)
-                cv2.imshow('pred', pred)
+                cv2.imshow('pred_img', pred_img)
                 cv2.waitKey(50)
 
 def GetTestSet(mode):

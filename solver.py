@@ -33,12 +33,12 @@ class Solver(object):
     def __init__(self, net, dataset, lr, output_dir):
         self.net = net
         self.dataset = dataset
-        self.optimizer = self.create_optimizer(lr) # what behavior? lr?
+        self.optimizer = self.create_optimizer(lr)  # what behavior? init lr?
         self.output_dir = output_dir
 
         self.criterion = None # set outside; lambda p, t
         self.writer = SummaryWriter(os.path.join(output_dir, 'tensorboard'))
-        self.num_iter = 0  # number of examples passed through; used only in tensorboardX ?
+        self.num_iter = 0  # number of examples passed through; used only in tensorboardX
         self.num_epoch = 0
         self.iter_per_sample = 1  # also in ScanDataset __init__
 
@@ -54,6 +54,8 @@ class Solver(object):
         batch_data = DataLoader(self.dataset, batch_size=batch_size, shuffle=True,
                                 num_workers=batch_size/2, collate_fn=CollateFn(), pin_memory=True)  # pin_memory
         for i_batch, (volume, target) in enumerate(batch_data):
+            while i_batch == 1:
+                print('target: ', target)
             self.num_iter += batch_size
             volume = Variable(volume).cuda()
             target = Variable(target).cuda()
