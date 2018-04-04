@@ -36,7 +36,7 @@ def PredictWorker(net, volume, cuda_id, result, lock):
     volume = volume.cuda(cuda_id)
     pred = SplitAndForward(net, volume, split_size=15)  # output NCDHW
     pred = F.softmax(Variable(pred.squeeze()), dim=0).data  # squeeze out N; softmax?
-    with lock:
+    with lock:  # lock.acquire(), lock.release()
         result[cuda_id] = pred
 
 
@@ -47,16 +47,16 @@ def Evaluate(nets, dataset, output_dir=None):
         print('Processing %d %s' % ((i+1)/len(dataset), folder_path))
         volume, _ = Resize(volume)
         volume = Variable(volume, volatile=True)  # inference mode (test time)
-        lock = threading.Lock()  # ?
+        lock = threading.Lock()
         result = {}
         if len(nets) > 1:
-            threads = [threading.Thread(target=PredictWorker,
+            threads = [threading.Thread(target=PredictWorker,  # create thread
                                         args=(net, volume, i, result, lock))
                        for i, net in enumerate(nets)]  # one net per thread (cuda_id)
             for thread in threads:
-                thread.start()
+                thread.start()  # start threads
             for thread in threads:
-                thread.join()
+                thread.join()   # sync all threads
             pred = result[0]
             for j in range(1, len(nets)):
                 pred += result[j].cuda(0)  # why add cuda(0)

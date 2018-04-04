@@ -4,12 +4,12 @@ import numpy as np
 
 
 class CurriculumWrapper:
-    def __init__(self, trans, prob):
+    def __init__(self, trans, prob):  # if prob, perform trans, otherwise return original
         self.trans = trans  # transformer
         self.prob = prob
 
     def __call__(self, *args):
-        if random.random() < self.prob: # if prob, perform trans, otherwise return original
+        if random.random() < self.prob:
             return self.trans(*args)
         else:
             if len(args) == 1:  # [volume, label]
@@ -19,13 +19,12 @@ class CurriculumWrapper:
 
 
 
-class ReColor: # what effect?
+class ReColor:  # randomly amplify each channel
     def __init__(self, alpha=0.05):
         self._alpha = alpha
 
     def __call__(self, img):
-        num_chns = img.shape[3]
-        # randomly amplify each channel
+        num_chns = img.shape[3]  # HWDC
         t = np.random.uniform(-1, 1, num_chns)
         img = img.astype(np.float32)
         img *= (1 + t * self._alpha)
@@ -37,7 +36,7 @@ class RandomRotate:
     def __init__(self, random_flip=True):
         self.random_flip = random_flip
 
-    def __call__(self, img, mask): # volume, label
+    def __call__(self, img, mask):  # volume, label
         # horizontal flip
         if self.random_flip and random.random() > 0.5:
             img = img[:, ::-1, :]
@@ -48,7 +47,7 @@ class RandomRotate:
         if num_rotate > 0:
             img = np.rot90(img, num_rotate)
             mask = np.rot90(mask, num_rotate)
-        return img.copy(), mask.copy() # why copy?
+        return img.copy(), mask.copy()  # why copy?
 
 class SampleVolume: # what??
     def __init__(self, dst_shape=[96, 96, 5], pos_ratio=-1):
@@ -56,7 +55,7 @@ class SampleVolume: # what??
         self.pos_ratio = pos_ratio
 
     def __call__(self, data, label):
-        src_h, src_w, src_d, _ = data.shape
+        src_h, src_w, src_d, _ = data.shape  # HWDC
         dst_h, dst_w, dst_d = self.dst_shape
         if type(dst_d) is list:
             dst_d = random.choice(dst_d)
@@ -66,8 +65,8 @@ class SampleVolume: # what??
             d = random.randint(0, src_d - dst_d)
         else:
             select = label > 0 if random.random() < self.pos_ratio else label == 0
-            h, w, d = np.where(select)
-            select_idx = random.randint(0, len(h) - 1)
+            h, w, d = np.where(select)  # position that meets condition
+            select_idx = random.randint(0, len(h) - 1)  # inclusive in both direction
             h = h[select_idx] - int(dst_h / 2)
             w = w[select_idx] - int(dst_w / 2)
             d = d[select_idx] - int(dst_d / 2)

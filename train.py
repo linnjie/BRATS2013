@@ -10,7 +10,7 @@ from refine_net import RefineNet
 from dataset import BRATSDataset
 
 from evaluator import EvalDiceScore, EvalSensitivity, EvalPrecision
-
+from FocalLoss import FocalLoss
 
 def GetDataset(fold, num_fold, need_train=True, need_val=True): # get train and val set
     data_root = './BRATS-2/Image_Data/HG/'
@@ -73,7 +73,7 @@ def Resize(volume, label=None, multiplier=8):
 def Evaluate(net, dataset, data_name):
     net.eval()
     dataset.eval()
-    evaluators = [EvalDiceScore(), EvalSensitivity(), EvalPrecision()]
+    evaluators = [EvalDiceScore(), EvalSensitivity(), EvalPrecision()]  # F1 score, recall, precision
 
     total_time = 0
     for i in range(len(dataset)):
@@ -102,7 +102,7 @@ def Evaluate(net, dataset, data_name):
         end = time.time()
         print('Time: %f' % (end - start))
         total_time += end - start
-        pred = pred.long()
+        pred = pred.long()  # long()?
 
         # 1 necrosis, 2 edema, 3 non-enhancing tumor, 4 enhancing tumor, 0 everything else
         for j in range(5):
@@ -120,7 +120,7 @@ def Evaluate(net, dataset, data_name):
 
 def Train(train_set, val_set, net, num_epoch, lr, output_dir):
     solver = Solver(net, train_set, 0.0001, output_dir)
-    solver.criterion = lambda p, t: SegLoss(p, t, num_classes=5) # pred, target, num_classes set here
+    solver.criterion = lambda p, t: SegLoss(p, t, num_classes=5, loss_fn=FocalLoss(5)) # pred, target, num_classes set here
     solver.iter_per_sample = 100  # goes to self.dataset.set_iter_per_sample() in Solver
     for i_epoch in range(0, num_epoch, solver.iter_per_sample):  # say, (0, 2000, 100), so i_epoch = 0, 100, 200...
         # train

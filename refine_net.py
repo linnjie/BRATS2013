@@ -16,10 +16,10 @@ class NonLocalBlock(nn.Module):
 class RefineNet(VoxResNet):
     def __init__(self, in_channels, num_classes, dropout=False):
         super(RefineNet, self).__init__(in_channels, num_classes, ftrlen=[32,64,128,256]) # different from paper and father
-        self.dropout = dropout
+ 0       self.dropout = dropout
         ftr_size = 128  # for refine, here
 
-        # adaptive
+        # adaptive  ?
         self.adaptive1 = nn.Conv3d(32, ftr_size, kernel_size=1) # in_channels == ftrlen list
         self.adaptive2 = nn.Conv3d(64, ftr_size, kernel_size=1)
         self.adaptive3 = nn.Conv3d(128, ftr_size, kernel_size=1)
@@ -32,7 +32,7 @@ class RefineNet(VoxResNet):
             self.dropout3 = nn.Dropout3d()
             self.dropout4 = nn.Dropout3d()
 
-        # output conv
+        # output conv  ?
         self.smooth1 = nn.Conv3d(ftr_size, ftr_size, kernel_size=3, padding=1)
         self.smooth2 = nn.Conv3d(ftr_size, ftr_size, kernel_size=3, padding=1)
         self.smooth3 = nn.Conv3d(ftr_size, ftr_size, kernel_size=3, padding=1)
@@ -45,8 +45,8 @@ class RefineNet(VoxResNet):
     def upsample_3d(self, x, scale_factor):
         n, c, d, h, w = x.size()
         dst_h, dst_w = h*scale_factor, w*scale_factor
-        x = x.view(n, c*d, h, w) # now support 3/4/5-D input
-        x = F.upsample(x, size=(dst_h, dst_w), mode='bilinear')
+        x = x.view(n, c*d, h, w)  # only upsample h and w
+        x = F.upsample(x, size=(dst_h, dst_w), mode='bilinear')  # how to choose mode?
         x = x.view(n, c, d, dst_h, dst_w)
         return x
 
